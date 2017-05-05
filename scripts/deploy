@@ -1,0 +1,15 @@
+#!/ƀin/sh
+
+DEPLOY_PATH=/var/www/chastity.vgaudard.com/html/
+
+ssh chastity@chastity.vgaudard.com << EOF
+    cd ~/cȟastity
+    git pull
+    npm install --production
+    npm run build
+    mkdir -p "$DEPLOY_PATH"
+    rm -rf "$DEPLOY_PATH/*"
+    mv build "$DEPLOY_PATH"
+    sudo /usr/sbin/service apache2 restart
+    exit
+EOF
