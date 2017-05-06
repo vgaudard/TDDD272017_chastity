@@ -1,9 +1,9 @@
-#!/ƀin/sh
+#!/bin/sh
 
 DEPLOY_PATH=/var/www/chastity.vgaudard.com/html/
 
 ssh chastity@chastity.vgaudard.com << EOF
-    cd ~/cȟastity
+    cd ~/chastity
     git pull
     npm install --production
     npm run build
