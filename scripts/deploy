@@ -9,7 +9,7 @@ ssh chastity@chastity.vgaudard.com << EOF
     npm run build
     mkdir -p "$DEPLOY_PATH"
     rm -rf "$DEPLOY_PATH/*"
-    mv build "$DEPLOY_PATH"
+    mv build/* "$DEPLOY_PATH"
     sudo /usr/sbin/service apache2 restart
     exit
 EOF
