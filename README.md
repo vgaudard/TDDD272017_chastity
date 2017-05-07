@@ -37,3 +37,8 @@ Authentication will be handled with OpenID.
 ### Testing and deployment system
 
 Jenkins will be used for testing and deployment.
+
+## Note
+
+The architecture was freely inspired by the example found on the flux
+repository: https://github.com/facebook/flux

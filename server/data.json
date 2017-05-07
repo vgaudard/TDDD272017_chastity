@@ -1,0 +1,16 @@
+{
+  "id_1": {
+    "id": "id_1",
+    "url": "example.com",
+    "username": "vgaudard",
+    "password": "noob",
+    "notes": ""
+  },
+  "id_2": {
+    "id": "id_2",
+    "url": "google.com",
+    "username": "bob",
+    "password": "mdp",
+    "notes": "This is note the most useless not in the world, this is a tribute ! "
+  }
+}
