@@ -5,7 +5,7 @@ DEPLOY_PATH=/var/www/chastity.vgaudard.com/html/
 ssh chastity@chastity.vgaudard.com << EOF
     cd ~/chastity
     git pull
-    npm install --production
+    npm install --dev
     npm run build
     mkdir -p "$DEPLOY_PATH"
     rm -rf "$DEPLOY_PATH/*"
