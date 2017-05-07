@@ -24,7 +24,7 @@ Express.js will be used as the server framework.
 
 ### Client framework
 
-React+Alt will be used as the client framework.
+React+flux will be used as the client framework.
 
 ### Data storage
 
