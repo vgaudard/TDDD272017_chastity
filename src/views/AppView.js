@@ -229,7 +229,7 @@ function PasswordItem(props: PasswordItemProps): ?React.Element<*> {
         buttons = (
             <div className="password-buttons">
                 <button className="retry" onClick={() => onRetry(password)} />
-                <button className="destroy" onClick={() => onDelete([password.id])} />
+                <button className="destroy" onClick={() => onDelete([password._id])} />
             </div>
         );
     }

@@ -12,6 +12,9 @@
 const express = require('express');
 const fs = require('fs');
 const path = require('path');
+const MongoClient = require('mongodb');
+
+const mongoUrl = 'mongodb://localhost:27017/chastity';
 
 // The port is hard coded in the client too. If you change it make sure to
 // update it there as well.
@@ -147,340 +150,312 @@ POST /passwords/delete
 });
 
 app.get('/ids', (req, res) => {
-  res.status(200).send(Object.keys(getPasswords()));
+    MongoClient.connect(mongoUrl, function (err, db) {
+        var collection = db.collection('passwords');
+        collection.find({}).toArray(function (err, docs) {
+            res.status(200).send(docs.map(password => password._id));
+
+            db.close();
+        });
+    });
 });
 
 app.get('/password', (req, res) => {
-  const rawID = req.query.id;
-  if (rawID == null) {
-    missing(res, 'id');
-    return;
-  }
-  const id = JSON.parse(rawID);
+    const rawID = req.query.id;
+    if (rawID == null) {
+        missing(res, 'id');
+        return;
+    }
+    const id = JSON.parse(rawID);
 
-  const passwords = getPasswords();
-  if (passwords[id] == null) {
-    missingID(res, id);
-    return;
-  }
+    MongoClient.connect(mongoUrl, function (err, db) {
+        var collection = db.collection('passwords');
+        collection.find({_id: id}).toArray(function (err, docs) {
+            res.status(200).send(docs[0]);
 
-  res.status(200).send(passwords[id]);
+            db.close();
+        });
+    });
 });
 
 app.get('/passwords', (req, res) => {
-  const rawIDs = req.query.ids;
-  if (rawIDs == null) {
-    missing(res, 'ids');
-    return;
-  }
-
-  const ids = JSON.parse(rawIDs);
-  if (!unique(ids)) {
-    res.status(400).send('ids contains duplicates');
-    return;
-  }
-  const passwords = getPasswords();
-  const result = [];
-  for (const id of ids) {
-    if (passwords[id] == null) {
-      missingID(res, id);
-      return;
+    const rawIDs = req.query.ids;
+    if (rawIDs == null) {
+        missing(res, 'ids');
+        return;
     }
-    result.push(passwords[id]);
-  }
 
-  res.status(200).send(result);
+    const ids = JSON.parse(rawIDs);
+    if (!unique(ids)) {
+        res.status(400).send('ids contains duplicates');
+        return;
+    }
+
+    var idsAsObjectIds = ids.map(id => MongoClient.ObjectId(id));
+    MongoClient.connect(mongoUrl, function (err, db) {
+        var collection = db.collection('passwords');
+        collection.find({_id: { $in: idsAsObjectIds }}).toArray(function (err, docs) {
+            res.status(200).send(docs);
+
+            db.close();
+        });
+    });
 });
 
 app.post('/password/create', (req, res) => {
-  const rawUrl = req.query.url;
-  const rawUsername = req.query.username;
-  const rawPassword = req.query.password;
-  const rawNotes = req.query.notes;
-  if (rawUrl == null) {
-    missing(res, 'url');
-    return;
-  }
-  if (rawUsername == null) {
-    missing(res, 'username');
-    return;
-  }
-  if (rawPassword == null) {
-    missing(res, 'password');
-    return;
-  }
-  if (rawNotes == null) {
-    missing(res, 'notes');
-    return;
-  }
-  const url = JSON.parse(rawUrl);
-  const username = JSON.parse(rawUsername);
-  const password = JSON.parse(rawPassword);
-  const notes = JSON.parse(rawNotes);
+    const rawUrl = req.query.url;
+    const rawUsername = req.query.username;
+    const rawPassword = req.query.password;
+    const rawNotes = req.query.notes;
+    if (rawUrl == null) {
+        missing(res, 'url');
+        return;
+    }
+    if (rawUsername == null) {
+        missing(res, 'username');
+        return;
+    }
+    if (rawPassword == null) {
+        missing(res, 'password');
+        return;
+    }
+    if (rawNotes == null) {
+        missing(res, 'notes');
+        return;
+    }
+    const url = JSON.parse(rawUrl);
+    const username = JSON.parse(rawUsername);
+    const password = JSON.parse(rawPassword);
+    const notes = JSON.parse(rawNotes);
 
-  const newPassword = {
-    id: nextID(),
-    url: String(url),
-    username: String(username),
-    password: String(password),
-    notes: String(notes),
-  };
+    const newPassword = {
+        url: String(url),
+        username: String(username),
+        password: String(password),
+        notes: String(notes),
+    };
+    MongoClient.connect(mongoUrl, function (err, db) {
+        var collection = db.collection('passwords');
+        collection.insert(newPassword, function (err, result) {
+            res.status(200).send(newPassword);
 
-  const passwords = getPasswords();
-  passwords[newPassword.id] = newPassword;
-  setPasswords(passwords);
-
-  res.status(200).send(newPassword);
+            db.close();
+        });
+    });
 });
 
 app.post('/passwords/create', (req, res) => {
-  const rawUrls = req.query.urls;
-  const rawUsernames = req.query.usernames;
-  const rawPasswords = req.query.passwords;
-  const rawNotess = req.query.notes;
-  if (rawUrls == null) {
-    missing(res, 'urls');
-    return;
-  }
-  if (rawUsernames == null) {
-    missing(res, 'usernames');
-    return;
-  }
-  if (rawPasswords == null) {
-    missing(res, 'passwords');
-    return;
-  }
-  if (rawNotess == null) {
-    missing(res, 'notess');
-    return;
-  }
-  const urls = JSON.parse(rawUrls);
-  const usernames = JSON.parse(rawUsernames);
-  const passwords = JSON.parse(rawPasswords);
-  const notess = JSON.parse(rawNotess);
+    const rawUrls = req.query.urls;
+    const rawUsernames = req.query.usernames;
+    const rawPasswords = req.query.passwords;
+    const rawNotess = req.query.notes;
+    if (rawUrls == null) {
+        missing(res, 'urls');
+        return;
+    }
+    if (rawUsernames == null) {
+        missing(res, 'usernames');
+        return;
+    }
+    if (rawPasswords == null) {
+        missing(res, 'passwords');
+        return;
+    }
+    if (rawNotess == null) {
+        missing(res, 'notess');
+        return;
+    }
+    const urls = JSON.parse(rawUrls);
+    const usernames = JSON.parse(rawUsernames);
+    const passwords = JSON.parse(rawPasswords);
+    const notess = JSON.parse(rawNotess);
 
-  const newPasswords = [];
-  for (var i = 0; i < urls.size; i++) {
-    newPasswords.push({
-      id: nextID(),
-      url: String(url[i]),
-      username: String(usernames[i]),
-      password: String(password[i]),
-      notes: String(notess[i]),
+    const newPasswords = [];
+    for (var i = 0; i < urls.size; i++) {
+        newPasswords.push({
+            url: String(url[i]),
+            username: String(usernames[i]),
+            password: String(password[i]),
+            notes: String(notess[i]),
+        });
+    }
+    MongoClient.connect(mongoUrl, function (err, db) {
+        var collection = db.collection('passwords');
+        collection.insertMany(newPasswords, function (err, docs) {
+            res.status(200).send(newPasswords);
+
+            db.close();
+        });
     });
-  }
-
-  const passwordList = getPasswords();
-  for (const newPassword of newPasswords) {
-    passwordList[newPassword.id] = newPassword;
-  }
-  setPasswords(passwordList);
-
-  res.status(200).send(newPasswords);
 });
 
 app.post('/password/update', (req, res) => {
-  const rawID = req.query.id;
-  if (rawID == null) {
-    missing(res, 'id');
-    return;
-  }
-  const id = JSON.parse(rawID);
-  const rawUrl = req.query.url;
-  const rawUsername = req.query.username;
-  const rawPassword = req.query.password;
-  const rawNotes = req.query.notes;
-  if (rawUrl == null) {
-    missing(res, 'url');
-    return;
-  }
-  if (rawUsername == null) {
-    missing(res, 'username');
-    return;
-  }
-  if (rawPassword == null) {
-    missing(res, 'password');
-    return;
-  }
-  if (notes == null) {
-    missing(res, 'notes');
-    return;
-  }
-  const url = JSON.parse(rawUrl);
-  const username = JSON.parse(rawUsername);
-  const password = JSON.parse(rawPassword);
-  const notes = JSON.parse(rawNotes);
+    const rawID = req.query.id;
+    if (rawID == null) {
+        missing(res, 'id');
+        return;
+    }
+    const id = JSON.parse(rawID);
+    const rawUrl = req.query.url;
+    const rawUsername = req.query.username;
+    const rawPassword = req.query.password;
+    const rawNotes = req.query.notes;
+    if (rawUrl == null) {
+        missing(res, 'url');
+        return;
+    }
+    if (rawUsername == null) {
+        missing(res, 'username');
+        return;
+    }
+    if (rawPassword == null) {
+        missing(res, 'password');
+        return;
+    }
+    if (notes == null) {
+        missing(res, 'notes');
+        return;
+    }
+    const url = String(JSON.parse(rawUrl));
+    const username = String(JSON.parse(rawUsername));
+    const password = String(JSON.parse(rawPassword));
+    const notes = String(JSON.parse(rawNotes));
 
+    MongoClient.connect(mongoUrl, function (err, db) {
+        var collection = db.collection('passwords');
+        collection.updateOne({_id: id},
+            { $set: {
+                url: url,
+                username: username,
+                password: password,
+                notes: notes
+            }}
+            , function (err, result) {
+                res.status(200).send({
+                    url: url,
+                    username: username,
+                    password: password,
+                    notes: notes,
+                });
 
-  const passwords = getPasswords();
-  if (passwords[id] == null) {
-    missingID(res, id);
-    return;
-  }
-
-  passwords[id].url = String(url);
-  passwords[id].username = String(username);
-  passwords[id].password = String(password);
-  passwords[id].notes = String(notes);
-  setPasswords(passwords);
-
-  res.status(200).send(passwords[id]);
+                db.close();
+            });
+    });
 });
 
 app.post('/passwords/update', (req, res) => {
-  const rawUrls = req.query.urls;
-  const rawUsername = req.query.usernames;
-  const rawPasswords = req.query.passwords;
-  const rawNotes = req.query.notes;
-  if (rawUrl == null) {
-    missing(res, 'urls');
-    return;
-  }
-  if (rawUsername == null) {
-    missing(res, 'usernames');
-    return;
-  }
-  if (rawPassword == null) {
-    missing(res, 'passwords');
-    return;
-  }
-  if (notes == null) {
-    missing(res, 'notes');
-    return;
-  }
-  const urls = JSON.parse(rawUrls);
-  const usernames = JSON.parse(rawUsernames);
-  const passwords = JSON.parse(rawPasswords);
-  const notess = JSON.parse(rawNotes);
-
-
-  const rawIDs = req.query.ids;
-  if (rawIDs == null) {
-    missing(res, 'ids');
-    return;
-  }
-  const ids = JSON.parse(rawIDs);
-  if (!unique(ids)) {
-    res.status(400).send('ids contains duplicates');
-    return;
-  }
-
-  const results = [];
-  const passwordList = getPasswords();
-  for (let i = 0; i < ids.length; i++) {
-    const id = ids[i];
-    const url = urls[i];
-    const username = usernames[i];
-    const password = passwords[i];
-    const notes = notess[i];
-    if (passwordList[id] == null) {
-      missingID(res, id);
-      return;
+    const rawUrls = req.query.urls;
+    const rawUsername = req.query.usernames;
+    const rawPasswords = req.query.passwords;
+    const rawNotes = req.query.notes;
+    if (rawUrl == null) {
+        missing(res, 'urls');
+        return;
     }
-    passwordList[id].url = String(url);
-    passwordList[id].username = String(username);
-    passwordList[id].password = String(password);
-    passwordList[id].notes = String(notes);
-    results.push(passwordList[id]);
-  }
+    if (rawUsername == null) {
+        missing(res, 'usernames');
+        return;
+    }
+    if (rawPassword == null) {
+        missing(res, 'passwords');
+        return;
+    }
+    if (notes == null) {
+        missing(res, 'notes');
+        return;
+    }
+    const urls = JSON.parse(rawUrls);
+    const usernames = JSON.parse(rawUsernames);
+    const passwords = JSON.parse(rawPasswords);
+    const notess = JSON.parse(rawNotes);
 
-  setPasswords(passwordList);
-  res.status(200).send(results);
+
+    const rawIDs = req.query.ids;
+    if (rawIDs == null) {
+        missing(res, 'ids');
+        return;
+    }
+    const ids = JSON.parse(rawIDs);
+    if (!unique(ids)) {
+        res.status(400).send('ids contains duplicates');
+        return;
+    }
+
+    throw new Error();
+    /*
+    MongoClient.connect(mongoUrl, function (err, db) {
+        var collection = db.collection('passwords');
+        collection.UpdateMany(
+            {_id: {$in: ids}},
+            {$set: {
+                url: urls[i],
+                username: username[i],
+                password: passwords[i],
+                notes: notes[i],
+            }}
+        ).toArray(function (err, result) {
+            res.status(200).send(result);
+
+            db.close();
+        });
+    });*/
 });
 
 app.post('/password/delete', (req, res) => {
-  const rawID = req.query.id;
-  if (rawID == null) {
-    missing(res, 'id');
-    return;
-  }
-  const id = JSON.parse(rawID);
+    const rawID = req.query.id;
+    if (rawID == null) {
+        missing(res, 'id');
+        return;
+    }
+    const id = JSON.parse(rawID);
 
-  const passwords = getPasswords();
-  if (passwords[id] == null) {
-    missingID(res, id);
-    return;
-  }
+    MongoClient.connect(mongoUrl, function (err, db) {
+        var collection = db.collection('passwords');
+        collection.deleteOne({_id: id}, function (err, result) {
+            res.status(200).send();
 
-  delete passwords[id];
-  setPasswords(passwords);
-  res.status(200).send();
+            db.close();
+        });
+    });
 });
 
 app.post('/passwords/delete', (req, res) => {
-  const rawIDs = req.query.ids;
-  if (rawIDs == null) {
-    missing(res, 'ids');
-    return;
-  }
-
-  const ids = JSON.parse(rawIDs);
-  if (!unique(ids)) {
-    res.status(400).send('ids contains duplicates');
-    return;
-  }
-
-  const passwords = getPasswords();
-  for (let id of ids) {
-    if (passwords[id] == null) {
-      missingID(res, id);
-      return;
+    const rawIDs = req.query.ids;
+    if (rawIDs == null) {
+        missing(res, 'ids');
+        return;
     }
-    delete passwords[id];
-  }
 
-  setPasswords(passwords);
-  res.status(200).send();
+    const ids = JSON.parse(rawIDs);
+    if (!unique(ids)) {
+        res.status(400).send('ids contains duplicates');
+        return;
+    }
+
+    MongoClient.connect(mongoUrl, function (err, db) {
+        var collection = db.collection('passwords');
+        collection.deleteMany({_id: {$in: ids}}, function (err, result) {
+            res.status(200).send();
+
+            db.close();
+        });
+    });
 });
 
 /**
  * Start listening on port 3000
  */
 app.listen(PORT, () => {
-  console.log(`Example app listening on port ${PORT}!`);
+  console.log(`Chastity listening on port ${PORT}!`);
 });
 
 ///// Some helper functions /////
 
 function unique(arr) {
-  const set = new Set(arr);
-  return set.size === arr.length;
+    const set = new Set(arr);
+    return set.size === arr.length;
 }
 
 function missing(res, field) {
-  res.status(400).send(`Missing required query param: ${field}.`);
-}
-
-function missingID(res, id) {
-  res.status(404).send('Password not found for ID: ${id}.');
-}
-
-function getPasswords() {
-  try {
-    return JSON.parse(fs.readFileSync(DATA_FILE, 'utf8'));
-  } catch (e) {
-    return {};
-  }
-}
-
-function setPasswords(passwords) {
-  fs.writeFileSync(DATA_FILE, JSON.stringify(passwords, null, 2), 'utf8');
-}
-
-let max = null;
-function nextID() {
-  if (max == null) {
-    max = 0;
-    Object.keys(getPasswords()).forEach(key => {
-      if (/^id_[1-9]\d*$/.test(key)) {
-        const idPart = key.split('_')[1];
-        max = Math.max(max, Number(idPart));
-      } else {
-        throw new Error(
-          `Invalid id "${key}" found, ids must look like id_<number>`
-        );
-      }
-    });
-  }
-  return 'id_' + (++max);
+    res.status(400).send(`Missing required query param: ${field}.`);
 }

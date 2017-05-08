@@ -82,6 +82,7 @@ const PasswordDataManager = {
     PasswordAPI
       .get('/ids')
       .then(ids => {
+        console.log(ids);
         PasswordDispatcher.dispatch({
           type: 'ids/loaded',
           ids,

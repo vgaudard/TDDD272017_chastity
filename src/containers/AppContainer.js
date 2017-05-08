@@ -116,7 +116,7 @@ function onDraftSetNotes(value: string) {
 }
 
 function onRetry(password: Password) {
-    if (FakeID.isFake(password.id)) {
+    if (FakeID.isFake(password._id)) {
         // If it's a fakeID we had an error creating it, try again.
         PasswordDispatcher.dispatch({
             type: 'password/start-create',
@@ -124,13 +124,13 @@ function onRetry(password: Password) {
             username: password.username,
             password: password.password,
             notes: password.notes,
-            fakeID: password.id,
+            fakeID: password._id,
         });
     } else {
         // It it's a real ID we had an error loading it, try again.
         PasswordDispatcher.dispatch({
             type: 'passwords/start-load',
-            ids: [password.id],
+            ids: [password._id],
         });
     }
 }
@@ -138,7 +138,7 @@ function onRetry(password: Password) {
 function onUpdatePasswords(passwords: Array<Password>) {
     PasswordDispatcher.dispatch({
         type: 'passwords/start-update',
-        ids: passwords.map(password => password.id),
+        ids: passwords.map(password => password._id),
         urls: passwords.map(password => password.url),
         usernames: passwords.map(password => password.username),
         passwords: passwords.map(password => password.password),

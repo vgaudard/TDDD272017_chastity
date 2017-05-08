@@ -18,7 +18,7 @@ import PasswordDataManager from '../data_managers/PasswordDataManager';
 import PasswordDispatcher from '../PasswordDispatcher';
 
 type State = {
-  id: string,
+  _id: string,
   url: string,
   username: string,
   password: string,

@@ -47,7 +47,7 @@ class PasswordStore extends ReduceStore<Action, State> {
         return state.set(
           action.fakeID,
           LoadObject.creating().setValue(new Password({
-            id: action.fakeID,
+            _id: action.fakeID,
             url: action.url,
             username: action.username,
             password: action.password,
@@ -59,7 +59,7 @@ class PasswordStore extends ReduceStore<Action, State> {
         // Replace the optimistic password with the real data.
         return state
           .delete(action.fakeID)
-          .set(action.password.id, LoadObject.withValue(action.password));
+          .set(action.password._id, LoadObject.withValue(action.password));
 
       case 'password/create-error':
         // Clear the operation and save the error when there is one.
@@ -76,7 +76,7 @@ class PasswordStore extends ReduceStore<Action, State> {
 
       case 'passwords/loaded':
         return state.merge(action.passwords.map(password => [
-          password.id,
+          password._id,
           LoadObject.withValue(password),
         ]));
 
@@ -120,13 +120,13 @@ class PasswordStore extends ReduceStore<Action, State> {
 
       case 'passwords/updated':
         return state.merge(action.passwords.map(password => [
-          password.id,
+          password._id,
           LoadObject.withValue(password),
         ]));
 
       case 'passwords/update-error':
         return state.merge(action.originalPasswords.map(password => [
-          password.id,
+          password._id,
           LoadObject.withValue(password).setError(action.error),
         ]));
 

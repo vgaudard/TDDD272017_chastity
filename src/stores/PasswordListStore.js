@@ -61,7 +61,7 @@ class PasswordListStore extends ReduceStore<Action, State> {
             case 'password/created':
                 // This replaces the fake ID we added optimistically with the real id.
                 return state.map(list => list.map(
-                    id => id === action.fakeID ? action.password.id : id
+                    id => id === action.fakeID ? action.password._id : id
                 ));
 
             case 'password/create-error':

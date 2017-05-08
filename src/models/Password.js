@@ -14,21 +14,21 @@
 import Immutable from 'immutable';
 
 declare class Password {
-  id: string;
+  _id: string;
   url: string;
   username: string;
   password: string;
   notes: string;
 
   constructor(data: {
-    id: string;
+    _id: string;
     url: string;
     username: string;
     password: string;
     notes: string;
   }): void;
 
-  set(key: 'id', value: string): Password;
+  set(key: '_id', value: string): Password;
   set(key: 'url', value: string): Password;
   set(key: 'username', value: string): Password;
   set(key: 'password', value: string): Password;
@@ -37,7 +37,7 @@ declare class Password {
 
 // $FlowExpectedError: Intentional rebinding for flow.
 const Password = Immutable.Record({
-  id: '',
+  _id: '',
   url: '',
   username: '',
   password: '',

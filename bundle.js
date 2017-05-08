@@ -224,7 +224,7 @@
 	}
 
 	function onRetry(password) {
-	    if (_FakeID2.default.isFake(password.id)) {
+	    if (_FakeID2.default.isFake(password._id)) {
 	        // If it's a fakeID we had an error creating it, try again.
 	        _PasswordDispatcher2.default.dispatch({
 	            type: 'password/start-create',
@@ -232,13 +232,13 @@
 	            username: password.username,
 	            password: password.password,
 	            notes: password.notes,
-	            fakeID: password.id
+	            fakeID: password._id
 	        });
 	    } else {
 	        // It it's a real ID we had an error loading it, try again.
 	        _PasswordDispatcher2.default.dispatch({
 	            type: 'passwords/start-load',
-	            ids: [password.id]
+	            ids: [password._id]
 	        });
 	    }
 	}
@@ -247,7 +247,7 @@
 	    _PasswordDispatcher2.default.dispatch({
 	        type: 'passwords/start-update',
 	        ids: passwords.map(function (password) {
-	            return password.id;
+	            return password._id;
 	        }),
 	        urls: passwords.map(function (password) {
 	            return password.url;
@@ -1824,7 +1824,7 @@
 	                    return onRetry(password);
 	                } }),
 	            _react2.default.createElement('button', { className: 'destroy', onClick: function onClick() {
-	                    return onDelete([password.id]);
+	                    return onDelete([password._id]);
 	                } })
 	        );
 	    }
@@ -7636,7 +7636,7 @@
 
 	// $FlowExpectedError: Intentional rebinding for flow.
 	var Password = _immutable2.default.Record({
-	  id: '',
+	  _id: '',
 	  url: '',
 	  username: '',
 	  password: '',
@@ -13797,6 +13797,7 @@
 	  },
 	  loadIDs: function loadIDs() {
 	    _PasswordAPI2.default.get('/ids').then(function (ids) {
+	      console.log(ids);
 	      _PasswordDispatcher2.default.dispatch({
 	        type: 'ids/loaded',
 	        ids: ids
@@ -15046,7 +15047,7 @@
 	                    // This replaces the fake ID we added optimistically with the real id.
 	                    return state.map(function (list) {
 	                        return list.map(function (id) {
-	                            return id === action.fakeID ? action.password.id : id;
+	                            return id === action.fakeID ? action.password._id : id;
 	                        });
 	                    });
 
@@ -15587,7 +15588,7 @@
 	          _PasswordDataManager2.default.create(action.url, action.username, action.password, action.notes, action.fakeID);
 	          // Optimistically create the password with the fakeID.
 	          return state.set(action.fakeID, _LoadObject2.default.creating().setValue(new _Password2.default({
-	            id: action.fakeID,
+	            _id: action.fakeID,
 	            url: action.url,
 	            username: action.username,
 	            password: action.password,
@@ -15596,7 +15597,7 @@
 
 	        case 'password/created':
 	          // Replace the optimistic password with the real data.
-	          return state.delete(action.fakeID).set(action.password.id, _LoadObject2.default.withValue(action.password));
+	          return state.delete(action.fakeID).set(action.password._id, _LoadObject2.default.withValue(action.password));
 
 	        case 'password/create-error':
 	          // Clear the operation and save the error when there is one.
@@ -15614,7 +15615,7 @@
 
 	        case 'passwords/loaded':
 	          return state.merge(action.passwords.map(function (password) {
-	            return [password.id, _LoadObject2.default.withValue(password)];
+	            return [password._id, _LoadObject2.default.withValue(password)];
 	          }));
 
 	        case 'passwords/load-error':
@@ -15648,12 +15649,12 @@
 
 	        case 'passwords/updated':
 	          return state.merge(action.passwords.map(function (password) {
-	            return [password.id, _LoadObject2.default.withValue(password)];
+	            return [password._id, _LoadObject2.default.withValue(password)];
 	          }));
 
 	        case 'passwords/update-error':
 	          return state.merge(action.originalPasswords.map(function (password) {
-	            return [password.id, _LoadObject2.default.withValue(password).setError(action.error)];
+	            return [password._id, _LoadObject2.default.withValue(password).setError(action.error)];
 	          }));
 
 	        ///// Deleting /////

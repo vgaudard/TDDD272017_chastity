@@ -18,7 +18,7 @@ const PORT = 3000;
 const PREFIX = 'http://localhost:' + PORT;
 
 type PasswordObject = {
-  id: string,
+  _id: string,
   url: string,
   username: string,
   password: string,
@@ -31,7 +31,7 @@ type PasswordObject = {
 declare class PasswordAPI {
   static get(uri: '/ids'): Promise<Array<string>>;
 
-  static get(uri: '/password', data: {id: string}): Promise<PasswordObject>;
+  static get(uri: '/password', data: {_id: string}): Promise<PasswordObject>;
 
   static get(
     uri: '/passwords',
@@ -47,7 +47,7 @@ declare class PasswordAPI {
 
   static post(
     uri: '/password/update',
-    data: {id: string, url: string, username: string, password: string, notes: string},
+    data: {_id: string, url: string, username: string, password: string, notes: string},
   ): Promise<PasswordObject>;
 
   static post(
@@ -55,7 +55,7 @@ declare class PasswordAPI {
     data: {ids: Array<string>, url: Array<string>, usernames: Array<string>, passwords: Array<string>, notes: Array<string>},
   ): Promise<Array<PasswordObject>>;
 
-  static post(uri: '/password/delete', data: {id: string}): Promise<void>;
+  static post(uri: '/password/delete', data: {_id: string}): Promise<void>;
 
   static post(uri: '/passwords/delete', data: {ids: Array<string>}): Promise<void>;
 }
