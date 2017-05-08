@@ -102,6 +102,13 @@ function Main(props: MainProps): ?React.Element<*> {
             onDelete={onDelete}
             onRetry={onRetry}
             onUpdatePasswords={onUpdatePasswords}
+            editing={props.editing}
+            onStartEditingPassword={props.onStartEditingPassword}
+            onEditSetUrl={props.onEditSetUrl}
+            onEditSetUsername={props.onEditSetUsername}
+            onEditSetPassword={props.onEditSetPassword}
+            onEditSetNotes={props.onEditSetNotes}
+            onStopEditing={props.onStopEditing}
             />
         );
     });
@@ -203,12 +210,12 @@ type PasswordItemProps = {
 
 function PasswordItem(props: PasswordItemProps): ?React.Element<*> {
     const {
+        editing,
         passwordLo,
         onDelete,
         onRetry,
         onUpdatePasswords,
     } = props;
-
     if (!passwordLo.hasValue()) {
         return (
             <li className={classnames({
@@ -224,6 +231,32 @@ function PasswordItem(props: PasswordItemProps): ?React.Element<*> {
 
     const password = passwordLo.getValueEnforcing();
 
+    const passwordId = password._id;
+    const isEditing = editing === passwordId;
+    const onStartEditingPassword = () => props.onStartEditingPassword(passwordId);
+
+    let inputs = null;
+    if (isEditing) {
+        const onEditSetUrl = (event) => props.onEditSetUrl(passwordId, event.target.value);
+        const onEditSetUsername = (event) => props.onEditSetUsername(passwordId, event.target.value);
+        const onEditSetPassword = (event) => props.onEditSetPassword(passwordId, event.target.value);
+        const onEditSetNotes = (event) => props.onEditSetNotes(passwordId, event.target.value);
+        const onStopEditing = () => { props.onStopEditing(password._id, password.url, password.username, password.password, password.notes) };
+        const onKeyDown = (event) => {
+            if (event.keyCode === 13) {
+                onStopEditing();
+            }
+        };
+        inputs = (
+            <div>
+                <input type="text" onKeyDown={onKeyDown} onChange={onEditSetUrl} value={password.url} />
+                <input type="text" onKeyDown={onKeyDown} onChange={onEditSetUsername} value={password.username} />
+                <input type="text" onKeyDown={onKeyDown} onChange={onEditSetPassword} value={password.password} />
+                <input type="text" onKeyDown={onKeyDown} onChange={onEditSetNotes} value={password.notes} />
+            </div>
+        );
+    }
+
     let buttons = null;
     if (passwordLo.isDone()) {
         buttons = (
@@ -236,16 +269,19 @@ function PasswordItem(props: PasswordItemProps): ?React.Element<*> {
 
     return (
         <li className={classnames({
+            editing: isEditing,
             hasError: passwordLo.hasError(),
             shimmer: passwordLo.hasOperation(),
         })}>
             <div className="view"
+                onDoubleClick={onStartEditingPassword}
                 title={password.notes}>
                 <input type="text" readOnly value={password.url} />
                 <input type="text" readOnly value={password.username} />
                 <input type="text" readOnly value={password.password} />
                 {buttons}
             </div>
+            {inputs}
         </li>
     );
 }

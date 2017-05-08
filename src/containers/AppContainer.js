@@ -18,6 +18,7 @@ import Password from '../models/Password';
 import PasswordDispatcher from '../PasswordDispatcher';
 import PasswordDraftStore from '../stores/PasswordDraftStore';
 import PasswordListStore from '../stores/PasswordListStore';
+import PasswordEditStore from '../stores/PasswordEditStore';
 import PasswordStore from '../stores/PasswordStore';
 
 type PasswordObject = {
@@ -32,6 +33,7 @@ function getStores() {
     return [
         PasswordDraftStore,
         PasswordListStore,
+        PasswordEditStore,
         PasswordStore,
     ];
 }
@@ -50,6 +52,7 @@ function getState() {
 
     return {
         draft: PasswordDraftStore.getState(),
+        editing: PasswordEditStore.getState(),
 
         // Then optimistically remove passwords that are being deleted.
         ids: ids.map(list => list.filter(id => !deletedIDs.has(id))),
@@ -63,6 +66,12 @@ function getState() {
         onDraftSetNotes,
         onRetry,
         onUpdatePasswords,
+        onStartEditingPassword,
+        onEditSetUrl,
+        onEditSetUsername,
+        onEditSetPassword,
+        onEditSetNotes,
+        onStopEditing,
     };
 }
 
@@ -145,5 +154,56 @@ function onUpdatePasswords(passwords: Array<Password>) {
         notes: passwords.map(password => password.note),
     });
 }
+
+function onStartEditingPassword(id: string) {
+    PasswordDispatcher.dispatch({
+        type: 'edit/begin',
+        id,
+    });
+}
+
+function onEditSetUrl(id: string, value: string) {
+    PasswordDispatcher.dispatch({
+        type: 'edit/set-url',
+        id,
+        value,
+    });
+}
+
+function onEditSetUsername(id: string, value: string) {
+    PasswordDispatcher.dispatch({
+        type: 'edit/set-username',
+        id,
+        value,
+    });
+}
+
+function onEditSetPassword(id: string, value: string) {
+    PasswordDispatcher.dispatch({
+        type: 'edit/set-password',
+        id,
+        value,
+    });
+}
+
+function onEditSetNotes(id: string, value: string) {
+    PasswordDispatcher.dispatch({
+        type: 'edit/set-notes',
+        id,
+        value,
+    });
+}
+
+function onStopEditing(id: string, url: string, username: string, password: string, notes: string) {
+    PasswordDispatcher.dispatch({
+        type: 'edit/finish-start',
+        _id: id,
+        url,
+        username,
+        password,
+        notes,
+    });
+}
+
 
 export default Container.createFunctional(AppView, getStores, getState);

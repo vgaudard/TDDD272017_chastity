@@ -53,6 +53,27 @@ const PasswordDataManager = {
       });
   },
 
+  updatePassword(
+    id: string,
+    url: string,
+    username: string,
+    password: string,
+    notes: string,
+  ) {
+    PasswordAPI
+      .post('/password/update', {id, url, username, password, notes})
+      .then(rawPassword => {
+        PasswordDispatcher.dispatch({
+            type: 'edit/finished',
+        });
+      })
+      .catch(error => {
+        PasswordDispatcher.dispatch({
+            type: 'edit/finish-error',
+        });
+      });
+  },
+
   updatePasswords(
     ids: Array<string>,
     urls: Array<string>,

@@ -113,7 +113,47 @@ export type Action =
     type: 'passwords/update-error',
     originalPasswords: Array<Password>,
     error: Error,
-  }
+  },
+
+  // Editing passwords
+  | {
+      type: 'edit/begin',
+      id: string,
+  },
+  | {
+    type: 'edit/set-url',
+    id: string,
+    value: string,
+  },
+  | {
+    type: 'edit/set-username',
+    id: string,
+    value: string,
+  },
+  | {
+    type: 'edit/set-password',
+    id: string,
+    value: string,
+  },
+  | {
+    type: 'edit/set-notes',
+    id: string,
+    value: string,
+  },
+  | {
+    type: 'edit/finish-start',
+    url: string,
+    username: string,
+    password: string,
+    notes: string,
+    _id: string,
+  },
+  | {
+    type: 'edit/finish-error',
+  },
+  | {
+    type: 'edit/finished',
+  },
 
   // This is a semi-colon, all hail the mighty semi-colon.
   ;

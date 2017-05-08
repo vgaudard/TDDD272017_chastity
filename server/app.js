@@ -312,7 +312,7 @@ app.post('/password/update', (req, res) => {
         missing(res, 'password');
         return;
     }
-    if (notes == null) {
+    if (rawNotes == null) {
         missing(res, 'notes');
         return;
     }
@@ -323,7 +323,7 @@ app.post('/password/update', (req, res) => {
 
     MongoClient.connect(mongoUrl, function (err, db) {
         var collection = db.collection('passwords');
-        collection.updateOne({_id: id},
+        collection.updateOne({_id: MongoClient.ObjectId(id)},
             { $set: {
                 url: url,
                 username: username,
@@ -332,10 +332,11 @@ app.post('/password/update', (req, res) => {
             }}
             , function (err, result) {
                 res.status(200).send({
-                    url: url,
-                    username: username,
-                    password: password,
-                    notes: notes,
+                    _id: result._id,
+                    url: result.url,
+                    username: result.username,
+                    password: result.password,
+                    notes: result.notes,
                 });
 
                 db.close();
@@ -358,10 +359,6 @@ app.post('/passwords/update', (req, res) => {
     }
     if (rawPassword == null) {
         missing(res, 'passwords');
-        return;
-    }
-    if (notes == null) {
-        missing(res, 'notes');
         return;
     }
     const urls = JSON.parse(rawUrls);
